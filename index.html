@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QA VISITOR INFORMATION</title>
+<style>
+  :root{
+    --navy:#1B3A63;
+    --green:#1E8E5A;
+    --green-hover:#187a4d;
+    --bg:#D5D8DC;
+    --white:#FFFFFF;
+    --border:#C3C8CE;
+    --text:#232A31;
+    --text-muted:#5C6670;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html, body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    font-family:"Segoe UI","Malgun Gothic",Arial,sans-serif;
+    color:var(--text);
+    font-size:12px;
+  }
+
+  body *{
+    font-family:inherit;
+  }
+
+  .page{
+    padding-top:4.76mm;
+    padding-left:4.76mm;
+    padding-right:4.76mm;
+    padding-bottom:4.76mm;
+    max-width:1221.6px;
+    margin:0 auto;
+  }
+
+  /* Header */
+  .header-bar{
+    height:15mm;
+    background:var(--navy);
+    border-radius:4px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 16px;
+    color:var(--white);
+  }
+
+  .header-title{
+    font-size:19px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+
+  .btn-export{
+    height:9.4mm;
+    background:var(--green);
+    color:var(--white);
+    border:none;
+    border-radius:4px;
+    font-size:13px;
+    font-weight:700;
+    padding:0 18px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:background 0.15s ease;
+  }
+
+  .btn-export:hover{
+    background:var(--green-hover);
+  }
+
+  .btn-export:active{
+    transform:translateY(1px);
+  }
+
+  .btn-export svg{
+    width:14px;
+    height:14px;
+    flex:none;
+  }
+
+  /* Tabs */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-top:4.76mm;
+  }
+
+  .tab-btn{
+    font-size:14px;
+    font-weight:600;
+    background:var(--white);
+    color:var(--text);
+    border:1px solid #C9CDD2;
+    padding:9px 22px;
+    cursor:pointer;
+    border-radius:6px;
+    transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .tab-btn:hover:not(.active){
+    background:#F2F3F5;
+  }
+
+  .tab-btn.active{
+    color:var(--white);
+    background:var(--navy);
+    border-color:var(--navy);
+    font-weight:700;
+  }
+
+  .tab-panel{
+    display:none;
+  }
+
+  .tab-panel.active{
+    display:block;
+  }
+
+  /* Summary tab */
+  .summary-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+  .summary-filters{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .summary-filter{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; }
+  .summary-filter select{
+    font-size:12px; padding:6px 8px; width:100px; color:var(--text);
+    background:var(--white); border:1px solid #C9CDD2; border-radius:4px; outline:none;
+  }
+  .summary-filter select:focus{ border-color:var(--navy); }
+  .summary-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .chart-card{ border:1px solid var(--border); border-radius:4px; padding:10px 12px; min-width:0; }
+  .chart-title{ font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px; }
+  .chart-total{ color:var(--green); font-size:13px; font-weight:700; }
+  .chart-body svg{ display:block; width:100%; height:auto; }
+  .chart-empty{ padding:70px 0; text-align:center; color:var(--text-muted); }
+  .pie-wrap{ display:flex; justify-content:center; }
+  .pie-wrap svg{ width:100%; max-width:440px; }
+  .summary-note{ margin-top:8px; font-size:11px; color:var(--text-muted); }
+  .summary-note:empty{ display:none; }
+  @media (max-width:760px){ .summary-grid{ grid-template-columns:1fr; } }
+
+  /* Blocks */
+  .block{
+    background:var(--white);
+    border-radius:4px;
+    border:1px solid var(--border);
+    margin-top:4.76mm;
+    padding:16px;
+  }
+
+  .block-title{
+    font-size:14px;
+    font-weight:700;
+    color:var(--navy);
+    margin:0;
+  }
+
+  #entry-block{
+    padding:10px 16px;
+  }
+
+  .entry-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:8px;
+  }
+
+  .field-grid{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:8px 10px;
+  }
+
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    min-width:0;
+  }
+
+  .field label{
+    font-size:11px;
+    font-weight:600;
+    color:var(--text);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .field input[type="date"],
+  .field input[type="text"],
+  .field select,
+  .field textarea{
+    font-family:inherit;
+    font-size:12px;
+    color:var(--text);
+    background:var(--white);
+    border:1px solid #C9CDD2;
+    border-radius:4px;
+    padding:6px 8px;
+    outline:none;
+    transition:border-color 0.15s ease;
+    width:100%;
+    min-width:0;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus{
+    border-color:var(--navy);
+  }
+
+  .field textarea{
+    resize:vertical;
+    min-height:30px;
+    height:30px;
+  }
+
+  .time-input-row{
+    display:flex;
+    gap:5px;
+  }
+
+  .time-input-row input[type="text"]{
+    flex:1;
+    min-width:0;
+  }
+
+  .time-input-row select{
+    width:58px;
+    flex:none;
+    font-size:12px;
+    padding:6px 4px;
+    border:1px solid #C9CDD2;
+    border-radius:4px;
+    background:var(--white);
+  }
+
+  .btn-add{
+    height:9.4mm;
+    background:#3B7DDE;
+    color:var(--white);
+    border:none;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:700;
+    padding:0 18px;
+    cursor:pointer;
+    flex:none;
+  }
+
+  .btn-add:hover{
+    background:#2E68C4;
+  }
+
+  .entry-list-empty{
+    font-size:12px;
+    color:var(--text-muted);
+    padding:8px 0;
+  }
+
+  /* Entry List block: grows with data, capped at 3x the height of the Entry block (set by JS) */
+  #entry-list-block{
+    display:flex;
+    flex-direction:column;
+    max-height:var(--entry-list-max, none);
+  }
+
+  #entryListContainer{
+    display:flex;
+    flex-direction:column;
+    flex:0 1 auto;
+    min-height:0;
+    margin-top:10px;
+  }
+
+  /* Vertical scroll only; no horizontal scroll */
+  .entry-table-wrap{
+    flex:0 1 auto;
+    min-height:0;
+    overflow-x:hidden;
+    overflow-y:auto;
+    border:1px solid var(--border);
+    border-radius:4px;
+  }
+
+  table.entry-table{
+    width:100%;
+    table-layout:fixed;
+    border-collapse:separate;
+    border-spacing:0;
+    font-size:12px;
+  }
+
+  table.entry-table th,
+  table.entry-table td{
+    text-align:center;
+    vertical-align:middle;
+    padding:8px 6px;
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    white-space:normal;
+    overflow-wrap:anywhere;
+    background:var(--white);
+  }
+
+  table.entry-table th:last-child,
+  table.entry-table td:last-child{
+    border-right:none;
+    padding-left:2px;
+    padding-right:2px;
+  }
+
+  table.entry-table tbody tr:last-child td{
+    border-bottom:none;
+  }
+
+  /* Fixed data-row height = 2 lines of text; longer text is cut with an ellipsis (full text on hover) */
+  table.entry-table tbody td{
+    height:49px;
+  }
+
+  .cell-text{
+    line-height:16px;
+    max-height:32px;
+    overflow:hidden;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+    line-clamp:2;
+  }
+
+  table.entry-table tbody tr.cancelled td:not(:first-child):not(:last-child) .cell-text{
+    text-decoration:line-through;
+  }
+
+  /* Sticky header row while scrolling vertically */
+  table.entry-table thead th{
+    position:sticky;
+    top:0;
+    z-index:2;
+    color:var(--navy);
+    background:#DCE9F8;
+    font-weight:700;
+  }
+
+  table.entry-table tbody tr:hover td{
+    background:#F2F4F6;
+  }
+
+  .row-actions{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+  }
+
+  .row-delete,
+  .row-edit{
+    width:18px;
+    height:18px;
+    padding:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--white);
+    border-radius:4px;
+    cursor:pointer;
+    line-height:1;
+  }
+
+  .row-delete{
+    border:1px solid #E74C3C;
+    color:#E74C3C;
+    font-size:11px;
+    font-weight:700;
+  }
+
+  .row-delete:hover{
+    background:#FDEDEC;
+  }
+
+  .row-edit{
+    border:1px solid var(--green);
+    color:var(--green);
+  }
+
+  .row-edit:hover{
+    background:#E6F5ED;
+  }
+
+  .row-edit svg{
+    width:10px;
+    height:10px;
+    pointer-events:none;
+  }
+
+  /* Cells changed by a revision (highlight ends at 23:59 of the update day) */
+  table.entry-table tbody tr td.changed{
+    background:#DDF1E4;
+  }
+
+  table.entry-table tbody tr:hover td.changed{
+    background:#CDE9D7;
+  }
+
+  /* Revised with Remark = "Cancel": strike through all data cells of the row */
+  table.entry-table tbody tr.cancelled td:not(:first-child):not(:last-child){
+    text-decoration:line-through;
+    color:var(--text-muted);
+  }
+
+  /* Revising indicator in Entry block */
+  .entry-title-wrap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+  }
+
+  .revising-note{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    color:var(--green);
+    font-weight:600;
+  }
+
+  .revising-note[hidden]{
+    display:none;
+  }
+
+  .revising-cancel{
+    border:1px solid var(--border);
+    background:var(--white);
+    color:var(--text-muted);
+    border-radius:4px;
+    font-size:11px;
+    padding:2px 8px;
+    cursor:pointer;
+  }
+
+  .revising-cancel:hover{
+    background:#F2F3F5;
+  }
+
+  /* Toast */
+  .toast{
+    position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%);
+    background:var(--navy); color:var(--white); padding:9px 16px; border-radius:6px;
+    font-size:12px; font-weight:600; z-index:200; max-width:90vw; box-shadow:0 4px 14px rgba(0,0,0,0.25);
+  }
+  .toast[hidden]{ display:none; }
+  .toast.error{ background:#C0392B; }
+
+  /* Confirm dialog */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(20,30,45,0.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+
+  .modal-overlay[hidden]{
+    display:none;
+  }
+
+  .modal-card{
+    background:var(--white);
+    border-radius:8px;
+    border:1px solid var(--border);
+    box-shadow:0 8px 28px rgba(0,0,0,0.25);
+    padding:20px 24px;
+    min-width:280px;
+    max-width:100%;
+    text-align:center;
+  }
+
+  .modal-message{
+    font-size:14px;
+    font-weight:700;
+    color:var(--navy);
+    margin-bottom:16px;
+  }
+
+  .modal-actions{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+  }
+
+  .modal-actions button{
+    min-width:84px;
+    height:32px;
+    border-radius:6px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  .btn-yes{
+    background:var(--navy);
+    color:var(--white);
+    border:1px solid var(--navy);
+  }
+
+  .btn-yes:hover{
+    background:#142c4d;
+  }
+
+  .btn-no{
+    background:var(--white);
+    color:var(--text);
+    border:1px solid #C9CDD2;
+  }
+
+  .btn-no:hover{
+    background:#F2F3F5;
+  }
+</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header-bar">
+    <div class="header-title">QA Visitor Information</div>
+    <button class="btn-export" id="exportBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3v12m0 0-4-4m4 4 4-4M5 19h14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Export Excel
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="information" type="button">Information</button>
+    <button class="tab-btn" data-tab="summary" type="button">Summary</button>
+  </div>
+
+  <!-- Information tab -->
+  <div class="tab-panel active" id="tab-information">
+    <div class="block" id="entry-block">
+      <div class="entry-header">
+        <div class="entry-title-wrap">
+          <div class="block-title">Entry</div>
+          <span class="revising-note" id="revisingNote" hidden>
+            <span id="revisingText"></span>
+            <button class="revising-cancel" id="revisingCancel" type="button">Cancel</button>
+          </span>
+        </div>
+        <button class="btn-add" id="addEntryBtn" type="button">+ Add</button>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="fromDate">From</label>
+          <input type="date" id="fromDate">
+        </div>
+
+        <div class="field">
+          <label for="toDate">To</label>
+          <input type="date" id="toDate">
+        </div>
+
+        <div class="field">
+          <label for="timeInput">Time</label>
+          <div class="time-input-row">
+            <input type="text" id="timeInput" placeholder="HH:MM" inputmode="numeric" maxlength="5">
+            <select id="ampmSelect">
+              <option>AM</option>
+              <option>PM</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="visitorName">Visitor Name</label>
+          <input type="text" id="visitorName" placeholder="Enter visitor name">
+        </div>
+
+        <div class="field">
+          <label for="companyBuyer">Company/ Buyer</label>
+          <input type="text" id="companyBuyer" placeholder="Enter company or buyer">
+        </div>
+
+        <div class="field">
+          <label for="factoryDept">Factory/Dept.</label>
+          <select id="factoryDept">
+            <option value="">Select</option>
+            <option>Factory 1</option>
+            <option>Factory 2</option>
+            <option>Factory 3</option>
+            <option>Factory 4</option>
+            <option>Factory 6</option>
+            <option>Factory 7</option>
+            <option>Main Office</option>
+            <option>Main Warehouse</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="usvStaff">USV Staff In Charge</label>
+          <select id="usvStaff">
+            <option value="">Select</option>
+            <option>Jenny-Trúc (7690)</option>
+            <option>Jessica-Ly (7728)</option>
+            <option>Kayla-Vân (-)</option>
+            <option>Sunshine-Thảo (-)</option>
+            <option>Lan (-)</option>
+            <option>Sky-Huyền (7758)</option>
+            <option>Mini-Tú (7758)</option>
+            <option>Mint-Hạ (7758)</option>
+            <option>Hari-Trúc (7783)</option>
+            <option>Amber-Hà (5841)</option>
+            <option>Peony-Châu (5876)</option>
+            <option>Tham-Thắm (7726)</option>
+            <option>Charlie-Hiếu (7734)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="foreignerManager">Foreigner Manager</label>
+          <select id="foreignerManager">
+            <option value="">Select</option>
+            <option>Mr.Kim Joo Shik</option>
+            <option>Mr.Kim Jong Hyun</option>
+            <option>Mr.Kim Da Vin</option>
+            <option>Ms.Rosana</option>
+            <option>Ms.Joyce</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="purpose">Purpose of Visit</label>
+          <input type="text" id="purpose" placeholder="Enter purpose of visit">
+        </div>
+
+        <div class="field">
+          <label for="remark">Remark</label>
+          <textarea id="remark" placeholder="Enter remark"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="block" id="entry-list-block">
+      <div class="block-title">Entry List</div>
+      <div id="entryListContainer">
+        <div class="entry-list-empty" id="entryListEmpty">No entries yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary tab -->
+  <div class="tab-panel" id="tab-summary">
+    <div class="block">
+      <div class="summary-header">
+        <div class="block-title">Weekly Visit</div>
+        <div class="summary-filters">
+          <div class="summary-filter"><label for="weekYearSelect">Year</label><select id="weekYearSelect"></select></div>
+          <div class="summary-filter"><label for="weekSelect">Week</label><select id="weekSelect"></select></div>
+        </div>
+      </div>
+      <div class="summary-grid">
+        <div class="chart-card"><div class="chart-title" id="weekBarTitle">Visit</div><div class="chart-body" id="weekBar"></div></div>
+        <div class="chart-card"><div class="chart-title">Weekly Portion</div><div class="chart-body" id="weekPie"></div></div>
+      </div>
+      <div class="summary-note" id="weekNote"></div>
+    </div>
+    <div class="block">
+      <div class="summary-header">
+        <div class="block-title">Monthly Visit</div>
+        <div class="summary-filters">
+          <div class="summary-filter"><label for="monthYearSelect">Year</label><select id="monthYearSelect"></select></div>
+          <div class="summary-filter"><label for="monthSelect">Month</label><select id="monthSelect"></select></div>
+        </div>
+      </div>
+      <div class="summary-grid">
+        <div class="chart-card"><div class="chart-title" id="monthBarTitle">Visit</div><div class="chart-body" id="monthBar"></div></div>
+        <div class="chart-card"><div class="chart-title">Monthly Portion</div><div class="chart-body" id="monthPie"></div></div>
+      </div>
+      <div class="summary-note" id="monthNote"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<div class="modal-overlay" id="confirmOverlay" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmMessage">
+    <div class="modal-message" id="confirmMessage"></div>
+    <div class="modal-actions">
+      <button class="btn-yes" id="confirmYes" type="button">Yes</button>
+      <button class="btn-no" id="confirmNo" type="button">No</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabPanels = {
+    information: document.getElementById('tab-information'),
+    summary: document.getElementById('tab-summary')
+  };
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(tabPanels).forEach(p => p.classList.remove('active'));
+      tabPanels[btn.dataset.tab].classList.add('active');
+    });
+  });
+
+  // Time field: auto-format HH:MM as the user types, AM/PM via dropdown
+  const timeInputEl = document.getElementById('timeInput');
+  const ampmSelectEl = document.getElementById('ampmSelect');
+
+  timeInputEl.addEventListener('input', () => {
+    let digits = timeInputEl.value.replace(/\D/g, '').slice(0, 4);
+    if(digits.length >= 3){
+      timeInputEl.value = digits.slice(0, 2) + ':' + digits.slice(2);
+    } else {
+      timeInputEl.value = digits;
+    }
+  });
+
+  timeInputEl.addEventListener('blur', () => {
+    const digits = timeInputEl.value.replace(/\D/g, '');
+    if(digits.length === 0){
+      timeInputEl.value = '';
+      return;
+    }
+    let hourRaw = parseInt(digits.slice(0, 2), 10);
+    if(isNaN(hourRaw)) hourRaw = 0;
+    if(hourRaw > 23) hourRaw = 23;
+    let m = parseInt(digits.slice(2, 4), 10) || 0;
+    if(m > 59) m = 59;
+
+    let hour12, ampm;
+    if(hourRaw === 0){
+      hour12 = 12; ampm = 'AM';
+    } else if(hourRaw <= 11){
+      hour12 = hourRaw; ampm = 'AM';
+    } else if(hourRaw === 12){
+      hour12 = 12; ampm = 'PM';
+    } else {
+      hour12 = hourRaw - 12; ampm = 'PM';
+    }
+
+    timeInputEl.value = String(hour12).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    ampmSelectEl.value = ampm;
+  });
+
+  // Entry List state
+  const entries = [];
+  const entryListContainer = document.getElementById('entryListContainer');
+  const columns = [
+    { key: 'from', label: 'From' },
+    { key: 'to', label: 'To' },
+    { key: 'time', label: 'Time' },
+    { key: 'visitorName', label: 'Visitor Name' },
+    { key: 'companyBuyer', label: 'Company/ Buyer' },
+    { key: 'factoryDept', label: 'Factory/Dept.' },
+    { key: 'usvStaff', label: 'USV Staff In Charge' },
+    { key: 'foreignerManager', label: 'Foreigner Manager' },
+    { key: 'purpose', label: 'Purpose of Visit' },
+    { key: 'remark', label: 'Remark' }
+  ];
+
+  function escapeHtml(str){
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  let nextEntryId = 1;
+  let editingId = null;
+
+  function pad2(n){ return String(n).padStart(2, '0'); }
+
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  const PENCIL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+
+  function fmtYmdSlash(str){
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str || '');
+    return m ? `${m[1]}/${m[2]}/${m[3]}` : (str || '');
+  }
+
+  function renderEntryList(){
+    if(entries.length === 0){
+      entryListContainer.innerHTML = '<div class="entry-list-empty" id="entryListEmpty">No entries yet.</div>';
+      return;
+    }
+
+    const prevWrap = entryListContainer.querySelector('.entry-table-wrap');
+    const prevScroll = prevWrap ? prevWrap.scrollTop : 0;
+    const today = todayStr();
+
+    let html = '<div class="entry-table-wrap"><table class="entry-table">';
+    html += '<colgroup><col style="width:44px">';
+    columns.forEach(() => { html += '<col>'; });
+    html += '<col style="width:60px"></colgroup>';
+    html += '<thead><tr>';
+    html += '<th>No.</th>';
+    columns.forEach(col => { html += `<th>${col.label}</th>`; });
+    html += '<th>Revision</th></tr></thead><tbody>';
+
+    entries.forEach((entry, idx) => {
+      const changedKeys = (entry.revisedOn === today && Array.isArray(entry.changed)) ? entry.changed : [];
+      const rowCls = entry.cancelled ? ' class="cancelled"' : '';
+      html += `<tr${rowCls}>`;
+      html += `<td>${idx + 1}</td>`;
+      columns.forEach(col => {
+        const cellCls = changedKeys.includes(col.key) ? ' class="changed"' : '';
+        const shown = (col.key === 'from' || col.key === 'to') ? fmtYmdSlash(entry[col.key]) : (entry[col.key] || '');
+        const tip = shown ? ` title="${escapeHtml(shown).replace(/"/g, '&quot;')}"` : '';
+        html += `<td${cellCls}><div class="cell-text"${tip}>${escapeHtml(shown)}</div></td>`;
+      });
+      html += '<td><div class="row-actions">';
+      html += `<button class="row-delete" data-action="delete" data-id="${entry.id}" type="button" aria-label="Delete entry ${idx + 1}">×</button>`;
+      html += `<button class="row-edit" data-action="edit" data-id="${entry.id}" type="button" aria-label="Revise entry ${idx + 1}">${PENCIL_SVG}</button>`;
+      html += '</div></td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    entryListContainer.innerHTML = html;
+
+    const newWrap = entryListContainer.querySelector('.entry-table-wrap');
+    if(newWrap) newWrap.scrollTop = prevScroll;
+  }
+
+  // Revised-row highlight ends at 23:59 of the update day: re-render right after midnight
+  function scheduleMidnightRefresh(){
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+    setTimeout(() => {
+      renderEntryList();
+      scheduleMidnightRefresh();
+    }, next - now + 50);
+  }
+  scheduleMidnightRefresh();
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden) renderEntryList();
+  });
+
+  // Confirm dialog (Yes / No)
+  const confirmOverlay = document.getElementById('confirmOverlay');
+  const confirmMessage = document.getElementById('confirmMessage');
+  const confirmYes = document.getElementById('confirmYes');
+  const confirmNo = document.getElementById('confirmNo');
+  let pendingAction = null;
+
+  function openConfirm(message, onYes){
+    pendingAction = onYes;
+    confirmMessage.textContent = message;
+    confirmOverlay.hidden = false;
+    confirmNo.focus();
+  }
+
+  function closeConfirm(){
+    confirmOverlay.hidden = true;
+    pendingAction = null;
+  }
+
+  confirmYes.addEventListener('click', () => {
+    const action = pendingAction;
+    closeConfirm();
+    if(action) action();
+  });
+  confirmNo.addEventListener('click', closeConfirm);
+  confirmOverlay.addEventListener('click', (e) => {
+    if(e.target === confirmOverlay) closeConfirm();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && !confirmOverlay.hidden) closeConfirm();
+  });
+
+  // Revise mode
+  const revisingNote = document.getElementById('revisingNote');
+  const revisingText = document.getElementById('revisingText');
+
+  function resetForm(){
+    document.getElementById('fromDate').value = '';
+    document.getElementById('toDate').value = '';
+    document.getElementById('visitorName').value = '';
+    document.getElementById('companyBuyer').value = '';
+    document.getElementById('purpose').value = '';
+    document.getElementById('remark').value = '';
+    document.getElementById('factoryDept').value = '';
+    document.getElementById('usvStaff').value = '';
+    document.getElementById('foreignerManager').value = '';
+    timeInputEl.value = '';
+    ampmSelectEl.value = 'AM';
+  }
+
+  function exitReviseMode(){
+    editingId = null;
+    revisingNote.hidden = true;
+    revisingText.textContent = '';
+  }
+
+  function loadEntryIntoForm(entry){
+    document.getElementById('fromDate').value = entry.from || '';
+    document.getElementById('toDate').value = entry.to || '';
+    const m = /^(\d{2}:\d{2})\s*(AM|PM)$/.exec(entry.time || '');
+    timeInputEl.value = m ? m[1] : '';
+    ampmSelectEl.value = m ? m[2] : 'AM';
+    document.getElementById('visitorName').value = entry.visitorName || '';
+    document.getElementById('companyBuyer').value = entry.companyBuyer || '';
+    document.getElementById('factoryDept').value = entry.factoryDept || '';
+    document.getElementById('usvStaff').value = entry.usvStaff || '';
+    document.getElementById('foreignerManager').value = entry.foreignerManager || '';
+    document.getElementById('purpose').value = entry.purpose || '';
+    document.getElementById('remark').value = entry.remark || '';
+  }
+
+  function startRevise(id){
+    const idx = entries.findIndex(e => e.id === id);
+    if(idx < 0) return;
+    editingId = id;
+    loadEntryIntoForm(entries[idx]);
+    revisingText.textContent = `Revising No. ${idx + 1}`;
+    revisingNote.hidden = false;
+    entryBlockEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    document.getElementById('visitorName').focus();
+  }
+
+  document.getElementById('revisingCancel').addEventListener('click', () => {
+    exitReviseMode();
+    resetForm();
+  });
+
+  // Row actions (delete / revise) with confirmation
+  entryListContainer.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const id = Number(btn.dataset.id);
+
+    if(btn.dataset.action === 'delete'){
+      openConfirm('Are you sure to delete?', async () => {
+        try{
+          await store.remove(id);
+          const idx = entries.findIndex(en => en.id === id);
+          if(idx >= 0) entries.splice(idx, 1);
+          if(editingId === id){
+            exitReviseMode();
+            resetForm();
+          }
+          renderEntryList();
+          refreshSummary(true);
+        }catch(err){
+          showToast('Could not delete: ' + err.message, true);
+        }
+      });
+    } else if(btn.dataset.action === 'edit'){
+      openConfirm('Are you sure to revise?', () => startRevise(id));
+    }
+  });
+
+  // ===== Backend =====
+  // Google Apps Script web app (Google Sheet as database). Leave API_URL empty to test locally (browser storage only).
+  const API_URL = '';    // e.g. 'https://script.google.com/macros/s/XXXXXXXX/exec'
+  const API_TOKEN = '';  // optional; must equal TOKEN in Code.gs
+
+  let toastTimer = null;
+  function showToast(msg, isError){
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast' + (isError ? ' error' : '');
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, isError ? 6000 : 2500);
+  }
+
+  async function apiCall(method, payload){
+    let res;
+    if(method === 'GET'){
+      const qs = new URLSearchParams({ action: 'list', token: API_TOKEN });
+      res = await fetch(API_URL + '?' + qs.toString());
+    } else {
+      // text/plain keeps this a "simple" request (no CORS preflight, which Apps Script does not answer)
+      res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ token: API_TOKEN }, payload))
+      });
+    }
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'Request failed');
+    return json;
+  }
+
+  // Local fallback (used only when API_URL is empty)
+  const STORAGE_KEY = 'qa_visitor_information_entries_v1';
+  function localRead(){
+    try{
+      const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      return Array.isArray(d.entries) ? d.entries : [];
+    }catch(e){ return []; }
+  }
+  function localWrite(list){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({ entries: list })); }catch(e){}
+  }
+
+  const store = {
+    async list(){
+      if(API_URL) return (await apiCall('GET')).entries;
+      return localRead();
+    },
+    async add(data){
+      if(API_URL) return (await apiCall('POST', { action: 'add', entry: data })).entry;
+      const list = localRead();
+      const entry = Object.assign({ id: list.reduce((m, e) => Math.max(m, Number(e.id) || 0), 0) + 1 }, data);
+      list.push(entry); localWrite(list);
+      return entry;
+    },
+    async update(entry){
+      if(API_URL) return (await apiCall('POST', { action: 'update', entry: entry })).entry;
+      const list = localRead(), i = list.findIndex(e => e.id === entry.id);
+      if(i >= 0){ list[i] = entry; localWrite(list); }
+      return entry;
+    },
+    async remove(id){
+      if(API_URL){ await apiCall('POST', { action: 'delete', id: id }); return; }
+      localWrite(localRead().filter(e => e.id !== id));
+    }
+  };
+
+  let busy = false;
+
+  async function reloadEntries(silent){
+    try{
+      const list = await store.list();
+      entries.length = 0;
+      list.forEach(e => entries.push(e));
+      if(editingId !== null && !entries.some(e => e.id === editingId)){
+        exitReviseMode();
+        resetForm();
+      }
+      renderEntryList();
+      refreshSummary(true);
+    }catch(err){
+      if(!silent){
+        entryListContainer.innerHTML = '<div class="entry-list-empty">Could not load data.</div>';
+        showToast('Could not load data: ' + err.message, true);
+      }
+    }
+  }
+
+  function isCancelRemark(text){
+    return String(text || '').trim().toLowerCase() === 'cancel';
+  }
+
+  entryListContainer.innerHTML = '<div class="entry-list-empty">Loading...</div>';
+  reloadEntries(false);
+
+  // Keep several users in sync: refresh when the tab is shown again and every 60 seconds
+  if(API_URL){
+    document.addEventListener('visibilitychange', () => { if(!document.hidden && !busy) reloadEntries(true); });
+    setInterval(() => {
+      if(document.hidden || busy || !confirmOverlay.hidden) return;
+      reloadEntries(true);
+    }, 60000);
+  }
+
+  // Entry List block max height = 3 x height of Entry block, +14% (the extra height goes to the table scroll area)
+  const entryBlockEl = document.getElementById('entry-block');
+  const entryListBlockEl = document.getElementById('entry-list-block');
+
+  function updateEntryListMaxHeight(){
+    const h = entryBlockEl.getBoundingClientRect().height;
+    if(h > 0){
+      entryListBlockEl.style.setProperty('--entry-list-max', (h * 3 * 1.14) + 'px');
+    }
+  }
+
+  updateEntryListMaxHeight();
+  if(window.ResizeObserver){
+    new ResizeObserver(updateEntryListMaxHeight).observe(entryBlockEl);
+  }
+  window.addEventListener('resize', updateEntryListMaxHeight);
+
+  document.getElementById('addEntryBtn').addEventListener('click', async () => {
+    const visitorName = document.getElementById('visitorName').value.trim();
+    if(!visitorName){
+      document.getElementById('visitorName').focus();
+      return;
+    }
+
+    const timeVal = timeInputEl.value ? `${timeInputEl.value} ${ampmSelectEl.value}` : '';
+
+    const data = {
+      from: document.getElementById('fromDate').value,
+      to: document.getElementById('toDate').value,
+      time: timeVal,
+      visitorName: visitorName,
+      companyBuyer: document.getElementById('companyBuyer').value.trim(),
+      factoryDept: document.getElementById('factoryDept').value,
+      usvStaff: document.getElementById('usvStaff').value,
+      foreignerManager: document.getElementById('foreignerManager').value,
+      purpose: document.getElementById('purpose').value.trim(),
+      remark: document.getElementById('remark').value.trim()
+    };
+
+    const editIdx = editingId !== null ? entries.findIndex(e => e.id === editingId) : -1;
+    const addBtn = document.getElementById('addEntryBtn');
+    addBtn.disabled = true;
+    busy = true;
+    try{
+      if(editIdx >= 0){
+        const old = entries[editIdx];
+        const today = todayStr();
+        // Cells whose value changed; accumulate if the row is revised again on the same day
+        const changed = (old.revisedOn === today && Array.isArray(old.changed)) ? old.changed.slice() : [];
+        columns.forEach(col => {
+          if((old[col.key] || '') !== (data[col.key] || '') && !changed.includes(col.key)){
+            changed.push(col.key);
+          }
+        });
+        const saved = await store.update(Object.assign({
+          id: editingId,
+          revisedOn: today,
+          changed: changed,
+          cancelled: isCancelRemark(data.remark)
+        }, data));
+        const i = entries.findIndex(e => e.id === saved.id);
+        if(i >= 0) entries[i] = saved; else entries.push(saved);
+      } else {
+        entries.push(await store.add(data));
+      }
+      exitReviseMode();
+      renderEntryList();
+      refreshSummary(true);
+      resetForm();
+    }catch(err){
+      showToast('Could not save: ' + err.message, true);
+    }finally{
+      addBtn.disabled = false;
+      busy = false;
+    }
+  });
+
+  // Export to Excel via the platform's downloads capability
+  let downloadsApi = null;
+
+  async function getDownloadsApi(){
+    if(downloadsApi) return downloadsApi;
+    try{
+      downloadsApi = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null;
+    }catch(e){
+      downloadsApi = null;
+    }
+    return downloadsApi;
+  }
+
+  getDownloadsApi();
+
+  // Template: QA_Visitor_Information_Status.xlsx (base64) - keeps the original layout and formatting
+  const TEMPLATE_XLSX_BASE64 = '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';
+
+  // ---- Excel export based on the QA_Visitor_Information_Status.xlsx template ----
+  function base64ToArrayBuffer(b64){
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  function cloneStyle(style){
+    return JSON.parse(JSON.stringify(style || {}));
+  }
+
+  // 'yyyy-mm-dd' -> Date at UTC midnight (Excel date serial), or null
+  function dateToExcel(str){
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str || '');
+    return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : null;
+  }
+
+  // 'hh:mm AM' -> fraction of a day (Excel time), or null
+  function timeToExcel(str){
+    const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(str || '');
+    if(!m) return null;
+    let h = +m[1] % 12;
+    if(m[3].toUpperCase() === 'PM') h += 12;
+    return (h * 60 + (+m[2])) / 1440;
+  }
+
+  // Sheet name like the template ("9.21~9.26"): Monday ~ Saturday of the current week
+  function weekSheetName(){
+    const now = new Date();
+    const back = (now.getDay() + 6) % 7;            // days since Monday (Sunday counts as the end of the week)
+    const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - back);
+    const sat = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 5);
+    const fmt = d => `${d.getMonth() + 1}.${d.getDate()}`;
+    return `${fmt(mon)}~${fmt(sat)}`;
+  }
+
+  async function buildWorkbook(){
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(base64ToArrayBuffer(TEMPLATE_XLSX_BASE64));
+    const ws = wb.worksheets[0];
+
+    const FIRST_ROW = 5, FIRST_COL = 2, LAST_COL = 15;
+
+    // Capture template styles: data row (row 5) and the note under the table (B7)
+    const rowStyles = [];
+    for(let c = FIRST_COL; c <= LAST_COL; c++){
+      rowStyles[c] = cloneStyle(ws.getRow(FIRST_ROW).getCell(c).style);
+    }
+    const dataRowHeight = ws.getRow(FIRST_ROW).height;
+    const noteCell = ws.getCell('B7');
+    const noteText = noteCell.value;
+    const noteStyle = cloneStyle(noteCell.style);
+    const noteHeight = ws.getRow(7).height;
+
+    // Remove the note from its template position; it is re-added below the data
+    noteCell.value = null;
+    noteCell.style = {};
+    ws.getRow(7).height = undefined;
+
+    entries.forEach((entry, i) => {
+      const row = ws.getRow(FIRST_ROW + i);
+      row.height = dataRowHeight;
+      const values = {
+        2: i + 1,
+        3: dateToExcel(entry.from),
+        4: dateToExcel(entry.to),
+        5: timeToExcel(entry.time),
+        6: entry.visitorName,
+        7: entry.companyBuyer,
+        8: '-',   // Date of Birth
+        9: '-',   // ID Number
+        10: '-',  // ID Issuance Place
+        11: entry.factoryDept,
+        12: entry.usvStaff,
+        13: entry.foreignerManager,
+        14: entry.purpose,
+        15: entry.remark
+      };
+      for(let c = FIRST_COL; c <= LAST_COL; c++){
+        const cell = row.getCell(c);
+        cell.style = cloneStyle(rowStyles[c]);
+        const v = values[c];
+        cell.value = (v === '' || v === undefined) ? null : v;
+        // Cancelled row: strike through data cells (not the No. column), grey text like the Entry List
+        if(entry.cancelled && c > FIRST_COL){
+          cell.font = Object.assign({}, cell.font, { strike: true, color: { argb: 'FF5C6670' } });
+        }
+      }
+    });
+
+    const lastDataRow = FIRST_ROW + entries.length - 1;
+    const noteRow = ws.getRow(lastDataRow + 2);
+    noteRow.height = noteHeight;
+    const nc = noteRow.getCell(FIRST_COL);
+    nc.value = noteText;
+    nc.style = noteStyle;
+
+    // Rename sheet to the current week and keep the print area pointing to the table
+    ws.name = weekSheetName();
+    ws.pageSetup.printArea = `B$2:O$${lastDataRow}`;
+    // The template's hidden filter name points at the old sheet name; the sheet's own autoFilter stays
+    wb.definedNames.model = wb.definedNames.model.filter(d => d.name !== '_xlnm._FilterDatabase');
+
+    return wb.xlsx.writeBuffer();
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', async () => {
+    if(entries.length === 0){
+      alert('No entries to export yet.');
+      return;
+    }
+
+    let arrayBuffer;
+    try{
+      arrayBuffer = await buildWorkbook();
+    }catch(err){
+      alert('Could not build the Excel file: ' + (err && err.message ? err.message : 'unknown error'));
+      return;
+    }
+    const filename = `QA_Visitor_Information_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+    const api = await getDownloadsApi();
+    if(api){
+      const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+      try{
+        await api.save({ filename, data: blob });
+      }catch(err){
+        if(err && err.code === 'declined') return;
+        alert('Could not save the file: ' + (err && err.message ? err.message : 'unknown error'));
+      }
+      return;
+    }
+
+    // Standalone fallback: file opened directly in a browser (e.g. downloaded to disk)
+    const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  // ===== Summary tab: visits by buyer =====
+  // Bar order (left to right)
+  const BUYERS = [
+    { name: 'A&F',       color: '#16867A' },
+    { name: 'AEO',       color: '#7B5EA7' },
+    { name: 'CostCo',    color: '#1B3A63' },
+    { name: 'Cotton On', color: '#E67E22' },
+    { name: 'Pink',      color: '#D6558F' },
+    { name: 'Target',    color: '#C0392B' },
+    { name: 'Wal-Mart',  color: '#2F80C4' },
+    { name: 'F6 Uniqlo', color: '#B8860B' },
+    { name: 'F7 Uniqlo', color: '#6B7B8C' },
+    { name: 'Office',    color: '#1E8E5A' }
+  ];
+
+  // USV Staff In Charge -> Buyer
+  const STAFF_TO_BUYER_RAW = {
+    'Jenny-Trúc (7690)': 'CostCo',
+    'Jessica-Ly (7728)': 'Target',
+    'Kayla-Vân (-)': 'Pink',
+    'Sunshine-Thảo (-)': 'Cotton On',
+    'Sky-Huyền (7758)': 'A&F',
+    'Mini-Tú (7758)': 'Wal-Mart',
+    'Hari-Trúc (7783)': 'Wal-Mart',
+    'Lan (-)': 'Wal-Mart',
+    'Mint-Hạ (7758)': 'AEO',
+    'Amber-Hà (5841)': 'F6 Uniqlo',
+    'Peony-Châu (5876)': 'F7 Uniqlo',
+    'Tham-Thắm (7726)': 'Office',
+    'Charlie-Hiếu (7734)': 'Office'
+  };
+  const normKey = s => String(s || '').normalize('NFC').replace(/\s+/g, '').toLowerCase();
+  const STAFF_TO_BUYER = {};
+  Object.keys(STAFF_TO_BUYER_RAW).forEach(k => { STAFF_TO_BUYER[normKey(k)] = STAFF_TO_BUYER_RAW[k]; });
+
+  const weekSelect = document.getElementById('weekSelect');
+  const monthSelect = document.getElementById('monthSelect');
+  const weekYearSelect = document.getElementById('weekYearSelect');
+  const monthYearSelect = document.getElementById('monthYearSelect');
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function ymd(d){ return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function parseYmd(s){
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  }
+  function mondayOf(d){
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x;
+  }
+  function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+
+  // Every calendar day covered by an entry (From..To)
+  function visitDays(entry){
+    const start = parseYmd(entry.from);
+    if(!start) return [];
+    let end = parseYmd(entry.to) || start;
+    if(end < start) end = start;
+    const days = [];
+    for(let d = new Date(start); d <= end && days.length < 400; d = addDays(d, 1)) days.push(ymd(d));
+    return days;
+  }
+
+  // 1 visit = 1 Company/ Buyer on 1 day, counted per buyer. Cancelled rows are ignored.
+  function computeVisits(inRange){
+    const counts = {};
+    BUYERS.forEach(b => { counts[b.name] = 0; });
+    const seen = new Set(), seenUnmapped = new Set();
+    entries.forEach(e => {
+      if(e.cancelled) return;
+      const buyer = STAFF_TO_BUYER[normKey(e.usvStaff)];
+      const company = String(e.companyBuyer || '').trim().toLowerCase();
+      visitDays(e).forEach(day => {
+        if(!inRange(day)) return;
+        if(!buyer){ seenUnmapped.add(day + '|' + company); return; }
+        const key = buyer + '|' + day + '|' + company;
+        if(seen.has(key)) return;
+        seen.add(key);
+        counts[buyer]++;
+      });
+    });
+    return { counts: counts, unmapped: seenUnmapped.size, total: BUYERS.reduce((t, b) => t + counts[b.name], 0) };
+  }
+
+  // Y-axis step: always more than 1 unit, so the axis stays sparse
+  function niceStep(max){
+    if(max <= 8) return 2;
+    if(max <= 20) return 5;
+    if(max <= 40) return 10;
+    if(max <= 100) return 20;
+    return Math.ceil(max / 5 / 50) * 50;
+  }
+
+  function fmtPct(frac){
+    const p = Math.round(frac * 1000) / 10;
+    return p % 1 === 0 ? p.toFixed(0) : p.toFixed(1);
+  }
+
+  function barChartHtml(counts){
+    const W = 560, H = 274, L = 34, R = 12, T = 22, B = 48;
+    const pw = W - L - R, ph = H - T - B;
+    const vals = BUYERS.map(b => counts[b.name]);
+    const max = Math.max(1, ...vals);
+    const step = niceStep(max), yMax = Math.ceil(max / step) * step;
+    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Visits by buyer">`;
+    for(let v = 0; v <= yMax; v += step){
+      const y = T + ph - (v / yMax) * ph;
+      svg += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="${v === 0 ? '#9AA3AD' : '#E3E6EA'}"/>`;
+      svg += `<text x="${L - 6}" y="${y + 4}" text-anchor="end" font-size="10.5" fill="#5C6670">${v}</text>`;
+    }
+    const band = pw / BUYERS.length, bw = Math.min(32, band * 0.62);
+    BUYERS.forEach((b, i) => {
+      const v = counts[b.name], cx = L + band * i + band / 2, h = (v / yMax) * ph, y = T + ph - h;
+      if(v > 0){
+        svg += `<rect x="${cx - bw / 2}" y="${y}" width="${bw}" height="${h}" rx="2" fill="${b.color}"><title>${escapeHtml(b.name)}: ${v} visit(s)</title></rect>`;
+        svg += `<text x="${cx}" y="${y - 5}" text-anchor="middle" font-size="11" font-weight="700" fill="#232A31">${v}</text>`;
+      }
+      b.name.split(' ').forEach((w, j) => {
+        svg += `<text x="${cx}" y="${T + ph + 16 + j * 13}" text-anchor="middle" font-size="10.5" fill="#232A31">${escapeHtml(w)}</text>`;
+      });
+    });
+    // Average line: mean visits across the buyers shown, dashed black, label "Avg <rounded integer>"
+    const sum = vals.reduce((t, v) => t + v, 0);
+    if(sum > 0){
+      const avg = sum / BUYERS.length;
+      const ay = T + ph - (avg / yMax) * ph;
+      svg += `<line x1="${L}" x2="${W - R}" y1="${ay}" y2="${ay}" stroke="#000" stroke-width="1.2" stroke-dasharray="5 4"/>`;
+      svg += `<text x="${W - R - 2}" y="${ay - 5}" text-anchor="end" font-size="11" font-weight="700" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke">Avg ${Math.round(avg)}</text>`;
+    }
+    return svg + '</svg>';
+  }
+
+  function pieChartHtml(counts, total){
+    if(total === 0) return '<div class="chart-empty">No visits in this period.</div>';
+    const items = BUYERS.filter(b => counts[b.name] > 0);
+    const W = 440, H = 250, CX = 220, CY = 125, R = 88, GAP = 14;
+    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Share of visits by buyer">`;
+    let angle = -Math.PI / 2;
+    const labels = [];
+    items.forEach(b => {
+      const v = counts[b.name], frac = v / total, pct = fmtPct(frac);
+      const tip = `<title>${escapeHtml(b.name)}: ${v} visit(s) (${pct}%)</title>`;
+      const mid = angle + frac * Math.PI;
+      const a2 = angle + frac * 2 * Math.PI;
+      if(items.length === 1){
+        svg += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="${b.color}">${tip}</circle>`;
+      } else {
+        const x1 = CX + R * Math.cos(angle), y1 = CY + R * Math.sin(angle);
+        const x2 = CX + R * Math.cos(a2), y2 = CY + R * Math.sin(a2);
+        svg += `<path d="M${CX} ${CY} L${x1} ${y1} A${R} ${R} 0 ${frac > 0.5 ? 1 : 0} 1 ${x2} ${y2} Z" fill="${b.color}" stroke="#fff" stroke-width="1.5">${tip}</path>`;
+      }
+      if(frac >= 0.03 || items.length === 1){
+        const r = items.length === 1 ? 0 : R * 0.68;
+        svg += `<text x="${CX + r * Math.cos(mid)}" y="${CY + r * Math.sin(mid) + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${pct}%</text>`;
+      }
+      labels.push({ b: b, cos: Math.cos(mid), sin: Math.sin(mid) });
+      angle = a2;
+    });
+
+    // Buyer names outside the pie, with leader lines; spread apart so they do not overlap
+    const sides = { right: [], left: [] };
+    labels.forEach(l => {
+      l.sx = CX + R * l.cos; l.sy = CY + R * l.sin;
+      l.ex = CX + (R + 12) * l.cos; l.ey = CY + (R + 12) * l.sin;
+      l.ly = l.ey;
+      (l.cos >= 0 ? sides.right : sides.left).push(l);
+    });
+    Object.keys(sides).forEach(k => {
+      const arr = sides[k].sort((a, b) => a.ly - b.ly);
+      for(let i = 1; i < arr.length; i++){
+        if(arr[i].ly < arr[i - 1].ly + GAP) arr[i].ly = arr[i - 1].ly + GAP;
+      }
+      if(arr.length){
+        const over = arr[arr.length - 1].ly - (H - 8);
+        if(over > 0) arr.forEach(l => { l.ly -= over; });
+      }
+    });
+    labels.forEach(l => {
+      const dir = l.cos >= 0 ? 1 : -1, lx = CX + dir * (R + 30);
+      svg += `<polyline points="${l.sx},${l.sy} ${l.ex},${l.ey} ${lx},${l.ly}" fill="none" stroke="${l.b.color}" stroke-width="1"/>`;
+      svg += `<text x="${lx + dir * 4}" y="${l.ly + 4}" text-anchor="${dir > 0 ? 'start' : 'end'}" font-size="11.5" fill="${l.b.color}">${escapeHtml(l.b.name)}</text>`;
+    });
+    return `<div class="pie-wrap">${svg}</svg></div>`;
+  }
+
+  function fillSelect(sel, options, preferred){
+    const prev = sel.value;
+    sel.innerHTML = options.map(o => `<option value="${o.value}">${escapeHtml(o.label)}</option>`).join('');
+    const want = options.some(o => o.value === prev) ? prev : preferred;
+    sel.value = options.some(o => o.value === want) ? want : options[0].value;
+  }
+
+  // Year dropdown: years found in the data (plus the current year); "All" on top when there are 2+ years
+  function populateYearSelect(sel){
+    const cur = new Date().getFullYear();
+    const years = new Set([cur]);
+    entries.forEach(e => [e.from, e.to].forEach(str => { const d = parseYmd(str); if(d) years.add(d.getFullYear()); }));
+    const list = Array.from(years).sort((a, b) => b - a).map(y => ({ value: String(y), label: String(y) }));
+    if(list.length >= 2) list.unshift({ value: 'all', label: 'All' });
+    fillSelect(sel, list, String(cur));
+  }
+
+  // Weeks (Mon-Sat) that touch the chosen year; every year when "All"
+  function populateWeekSelect(){
+    const cur = new Date().getFullYear();
+    const yv = weekYearSelect.value;
+    const yearList = yv === 'all'
+      ? Array.from(weekYearSelect.options).map(o => +o.value).filter(n => !isNaN(n))
+      : [+yv];
+    const mondays = new Map();
+    yearList.forEach(y => {
+      let m = mondayOf(new Date(y, 0, 1));
+      if(addDays(m, 5) < new Date(y, 0, 1)) m = addDays(m, 7);
+      const last = mondayOf(new Date(y, 11, 31));
+      for(; m <= last; m = addDays(m, 7)) mondays.set(ymd(m), new Date(m));
+    });
+    const opts = Array.from(mondays.values()).sort((a, b) => b - a).map(m => {
+      const sat = addDays(m, 5);
+      return { value: ymd(m), label: `${m.getMonth() + 1}.${m.getDate()}~${sat.getMonth() + 1}.${sat.getDate()}` };
+    });
+    fillSelect(weekSelect, opts, ymd(mondayOf(new Date())));
+  }
+
+  function populateMonthSelect(){
+    const opts = [{ value: 'all', label: 'All' }].concat(MONTH_NAMES.map((n, i) => ({ value: String(i + 1), label: n })));
+    fillSelect(monthSelect, opts, String(new Date().getMonth() + 1));
+  }
+
+  function drawSummaryRow(prefix, result){
+    document.getElementById(prefix + 'BarTitle').innerHTML = `Visit - <span class="chart-total">Total: ${result.total}</span>`;
+    document.getElementById(prefix + 'Bar').innerHTML = barChartHtml(result.counts);
+    document.getElementById(prefix + 'Pie').innerHTML = pieChartHtml(result.counts, result.total);
+    document.getElementById(prefix + 'Note').textContent = result.unmapped > 0
+      ? `${result.unmapped} visit(s) without a USV Staff In Charge mapped to a buyer are not shown.` : '';
+  }
+
+  function refreshSummary(rebuildOptions){
+    if(rebuildOptions){
+      populateYearSelect(weekYearSelect);
+      populateYearSelect(monthYearSelect);
+      populateWeekSelect();
+      populateMonthSelect();
+    }
+    const mon = parseYmd(weekSelect.value) || mondayOf(new Date());
+    const from = ymd(mon), to = ymd(addDays(mon, 5));
+    drawSummaryRow('week', computeVisits(d => d >= from && d <= to));
+
+    const my = monthYearSelect.value, mm = monthSelect.value;
+    drawSummaryRow('month', computeVisits(d =>
+      (my === 'all' || d.slice(0, 4) === my) && (mm === 'all' || +d.slice(5, 7) === +mm)));
+  }
+
+  weekYearSelect.addEventListener('change', () => { populateWeekSelect(); refreshSummary(false); });
+  weekSelect.addEventListener('change', () => refreshSummary(false));
+  monthYearSelect.addEventListener('change', () => refreshSummary(false));
+  monthSelect.addEventListener('change', () => refreshSummary(false));
+  refreshSummary(true);
+</script>
+
+</body>
+</html>
