@@ -1058,7 +1058,7 @@
 
   // ===== Backend =====
   // Google Apps Script web app (Google Sheet as database). Leave API_URL empty to test locally (browser storage only).
-  const API_URL = 'https://script.google.com/macros/s/AKfycbweCriCMkGJnjqKMR3qA1zo9EPlHZBVH4pwD6Dt2gcBkG3MFXTqeVpW9dAt4vLCBDoKqA/exec';    // e.g. 'https://script.google.com/macros/s/XXXXXXXX/exec'
+  const API_URL = '';    // e.g. 'https://script.google.com/macros/s/XXXXXXXX/exec'
   const API_TOKEN = '';  // optional; must equal TOKEN in Code.gs
 
   let toastTimer = null;
@@ -1344,6 +1344,11 @@
     noteCell.style = {};
     ws.getRow(7).height = undefined;
 
+    // Excel column of each editable field (for the "changed today" highlight, same as the Entry List)
+    const COL_OF_KEY = { from: 3, to: 4, time: 5, visitorName: 6, companyBuyer: 7, factoryDept: 11,
+                         usvStaff: 12, foreignerManager: 13, purpose: 14, remark: 15 };
+    const todayKey = todayStr();
+
     rows.forEach((entry, i) => {
       const row = ws.getRow(FIRST_ROW + i);
       row.height = dataRowHeight;
@@ -1372,6 +1377,13 @@
         if(entry.cancelled && c > FIRST_COL){
           cell.font = Object.assign({}, cell.font, { strike: true, color: { argb: 'FF5C6670' } });
         }
+      }
+      // Cells changed by a revision today: light green fill, like the Entry List
+      if(entry.revisedOn === todayKey && Array.isArray(entry.changed)){
+        entry.changed.forEach(key => {
+          const c = COL_OF_KEY[key];
+          if(c) row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDF1E4' } };
+        });
       }
     });
 
