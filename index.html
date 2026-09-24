@@ -466,7 +466,7 @@
     padding:5px 8px; outline:none;
   }
   .search-item input{ width:132px; }
-  .search-item select{ width:150px; }
+  .search-item select{ width:120px; }
   .search-item input:focus,
   .search-item select:focus{ border-color:var(--navy); }
   .search-clear{
@@ -687,7 +687,8 @@
         <div class="list-search">
           <div class="search-item"><label for="searchFrom">From</label><input type="date" id="searchFrom"></div>
           <div class="search-item"><label for="searchTo">To</label><input type="date" id="searchTo"></div>
-          <div class="search-item"><label for="searchStaff">USV Staff In Charge</label><select id="searchStaff"></select></div>
+          <div class="search-item"><label for="searchTeam">Team</label><select id="searchTeam"></select></div>
+          <div class="search-item"><label for="searchFactory">Factory/Dept</label><select id="searchFactory"></select></div>
           <button class="search-clear" id="searchClear" type="button">Clear</button>
         </div>
       </div>
@@ -842,27 +843,31 @@
   // ---- Search (From / To date pickers + USV Staff In Charge); each condition is optional ----
   const searchFrom = document.getElementById('searchFrom');
   const searchTo = document.getElementById('searchTo');
-  const searchStaff = document.getElementById('searchStaff');
-  searchStaff.innerHTML = '<option value="">All</option>' +
-    Array.from(document.getElementById('usvStaff').options)
+  const searchTeam = document.getElementById('searchTeam');       // options are filled with the Summary buyer list (see end of script)
+  const searchFactory = document.getElementById('searchFactory');
+  searchFactory.innerHTML = '<option value="">All</option>' +
+    Array.from(document.getElementById('factoryDept').options)
       .filter(o => o.value !== '')
       .map(o => `<option>${escapeHtml(o.textContent)}</option>`).join('');
 
-  // A row matches when its visit dates (From..To) overlap the searched range
+  // A row matches when its visit dates (From..To) overlap the searched range,
+  // its USV Staff belongs to the chosen Team (same mapping as the Summary tab) and Factory/Dept is equal
   function entryMatchesSearch(e){
-    const sf = searchFrom.value, st = searchTo.value, ss = searchStaff.value;
-    if(ss && e.usvStaff !== ss) return false;
+    const sf = searchFrom.value, st = searchTo.value, team = searchTeam.value, fac = searchFactory.value;
+    if(team && STAFF_TO_BUYER[normKey(e.usvStaff)] !== team) return false;
+    if(fac && e.factoryDept !== fac) return false;
     const start = e.from || e.to || '', end = e.to || e.from || '';
     if(sf && (!end || end < sf)) return false;
     if(st && (!start || start > st)) return false;
     return true;
   }
 
-  [searchFrom, searchTo, searchStaff].forEach(el => el.addEventListener('change', () => renderEntryList()));
+  [searchFrom, searchTo, searchTeam, searchFactory].forEach(el => el.addEventListener('change', () => renderEntryList()));
   document.getElementById('searchClear').addEventListener('click', () => {
     searchFrom.value = '';
     searchTo.value = '';
-    searchStaff.value = '';
+    searchTeam.value = '';
+    searchFactory.value = '';
     renderEntryList();
   });
 
@@ -890,12 +895,14 @@
     columns.forEach(col => { html += `<th>${col.label}</th>`; });
     html += '<th>Revision</th></tr></thead><tbody>';
 
+    let rowNo = 0;
     entries.forEach((entry, idx) => {
-      if(!entryMatchesSearch(entry)) return;   // No. keeps the original row number
+      if(!entryMatchesSearch(entry)) return;
+      rowNo++;   // No. counts from 1 among the rows shown
       const changedKeys = (entry.revisedOn === today && Array.isArray(entry.changed)) ? entry.changed : [];
       const rowCls = entry.cancelled ? ' class="cancelled"' : '';
       html += `<tr${rowCls}>`;
-      html += `<td>${idx + 1}</td>`;
+      html += `<td>${rowNo}</td>`;
       columns.forEach(col => {
         const cellCls = changedKeys.includes(col.key) ? ' class="changed"' : '';
         const shown = (col.key === 'from' || col.key === 'to') ? fmtYmdSlash(entry[col.key]) : (entry[col.key] || '');
@@ -1006,7 +1013,8 @@
     if(idx < 0) return;
     editingId = id;
     loadEntryIntoForm(entries[idx]);
-    revisingText.textContent = `Revising No. ${idx + 1}`;
+    const shownNo = entries.filter(entryMatchesSearch).findIndex(e => e.id === id) + 1;
+    revisingText.textContent = `Revising No. ${shownNo || idx + 1}`;
     revisingNote.hidden = false;
     entryBlockEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     document.getElementById('visitorName').focus();
@@ -1156,14 +1164,14 @@
     }, 60000);
   }
 
-  // Entry List block max height = 3 x height of Entry block, +14% (the extra height goes to the table scroll area)
+  // Entry List block max height = 3 x height of Entry block, +14%, -5% (the height goes to the table scroll area)
   const entryBlockEl = document.getElementById('entry-block');
   const entryListBlockEl = document.getElementById('entry-list-block');
 
   function updateEntryListMaxHeight(){
     const h = entryBlockEl.getBoundingClientRect().height;
     if(h > 0){
-      entryListBlockEl.style.setProperty('--entry-list-max', (h * 3 * 1.14) + 'px');
+      entryListBlockEl.style.setProperty('--entry-list-max', (h * 3 * 1.14 * 0.95) + 'px');
     }
   }
 
@@ -1315,6 +1323,9 @@
     await wb.xlsx.load(base64ToArrayBuffer(TEMPLATE_XLSX_BASE64));
     const ws = wb.worksheets[0];
 
+    // Export only the rows that match the current Entry List search (From / To, Team, Factory/Dept)
+    const rows = entries.filter(entryMatchesSearch);
+
     const FIRST_ROW = 5, FIRST_COL = 2, LAST_COL = 15;
 
     // Capture template styles: data row (row 5) and the note under the table (B7)
@@ -1333,7 +1344,7 @@
     noteCell.style = {};
     ws.getRow(7).height = undefined;
 
-    entries.forEach((entry, i) => {
+    rows.forEach((entry, i) => {
       const row = ws.getRow(FIRST_ROW + i);
       row.height = dataRowHeight;
       const values = {
@@ -1364,7 +1375,7 @@
       }
     });
 
-    const lastDataRow = FIRST_ROW + entries.length - 1;
+    const lastDataRow = FIRST_ROW + rows.length - 1;
     const noteRow = ws.getRow(lastDataRow + 2);
     noteRow.height = noteHeight;
     const nc = noteRow.getCell(FIRST_COL);
@@ -1383,6 +1394,10 @@
   document.getElementById('exportBtn').addEventListener('click', async () => {
     if(entries.length === 0){
       alert('No entries to export yet.');
+      return;
+    }
+    if(!entries.some(entryMatchesSearch)){
+      alert('No entries match the current search, so there is nothing to export.');
       return;
     }
 
@@ -1671,6 +1686,9 @@
     drawSummaryRow('month', computeVisits(d =>
       (my === 'all' || d.slice(0, 4) === my) && (mm === 'all' || +d.slice(5, 7) === +mm)));
   }
+
+  // Team filter (Entry List) uses the same buyer/team list as the Summary tab
+  searchTeam.innerHTML = '<option value="">All</option>' + BUYERS.map(b => `<option>${escapeHtml(b.name)}</option>`).join('');
 
   weekYearSelect.addEventListener('change', () => { populateWeekSelect(); refreshSummary(false); });
   weekSelect.addEventListener('change', () => refreshSummary(false));
