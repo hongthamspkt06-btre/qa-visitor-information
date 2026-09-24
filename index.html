@@ -455,6 +455,26 @@
     background:#F2F3F5;
   }
 
+  /* Entry List header + search */
+  .list-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .list-search{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .search-item{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; }
+  .search-item input,
+  .search-item select{
+    font-family:inherit; font-size:12px; font-weight:400; color:var(--text);
+    background:var(--white); border:1px solid #C9CDD2; border-radius:4px;
+    padding:5px 8px; outline:none;
+  }
+  .search-item input{ width:132px; }
+  .search-item select{ width:150px; }
+  .search-item input:focus,
+  .search-item select:focus{ border-color:var(--navy); }
+  .search-clear{
+    border:1px solid var(--border); background:var(--white); color:var(--text-muted);
+    border-radius:4px; font-size:12px; padding:5px 10px; cursor:pointer;
+  }
+  .search-clear:hover{ background:#F2F3F5; }
+
   /* Toast */
   .toast{
     position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%);
@@ -662,7 +682,15 @@
     </div>
 
     <div class="block" id="entry-list-block">
-      <div class="block-title">Entry List</div>
+      <div class="list-header">
+        <div class="block-title">Entry List</div>
+        <div class="list-search">
+          <div class="search-item"><label for="searchFrom">From</label><input type="date" id="searchFrom"></div>
+          <div class="search-item"><label for="searchTo">To</label><input type="date" id="searchTo"></div>
+          <div class="search-item"><label for="searchStaff">USV Staff In Charge</label><select id="searchStaff"></select></div>
+          <button class="search-clear" id="searchClear" type="button">Clear</button>
+        </div>
+      </div>
       <div id="entryListContainer">
         <div class="entry-list-empty" id="entryListEmpty">No entries yet.</div>
       </div>
@@ -811,9 +839,41 @@
     return m ? `${m[1]}/${m[2]}/${m[3]}` : (str || '');
   }
 
+  // ---- Search (From / To date pickers + USV Staff In Charge); each condition is optional ----
+  const searchFrom = document.getElementById('searchFrom');
+  const searchTo = document.getElementById('searchTo');
+  const searchStaff = document.getElementById('searchStaff');
+  searchStaff.innerHTML = '<option value="">All</option>' +
+    Array.from(document.getElementById('usvStaff').options)
+      .filter(o => o.value !== '')
+      .map(o => `<option>${escapeHtml(o.textContent)}</option>`).join('');
+
+  // A row matches when its visit dates (From..To) overlap the searched range
+  function entryMatchesSearch(e){
+    const sf = searchFrom.value, st = searchTo.value, ss = searchStaff.value;
+    if(ss && e.usvStaff !== ss) return false;
+    const start = e.from || e.to || '', end = e.to || e.from || '';
+    if(sf && (!end || end < sf)) return false;
+    if(st && (!start || start > st)) return false;
+    return true;
+  }
+
+  [searchFrom, searchTo, searchStaff].forEach(el => el.addEventListener('change', () => renderEntryList()));
+  document.getElementById('searchClear').addEventListener('click', () => {
+    searchFrom.value = '';
+    searchTo.value = '';
+    searchStaff.value = '';
+    renderEntryList();
+  });
+
   function renderEntryList(){
     if(entries.length === 0){
       entryListContainer.innerHTML = '<div class="entry-list-empty" id="entryListEmpty">No entries yet.</div>';
+      return;
+    }
+
+    if(!entries.some(entryMatchesSearch)){
+      entryListContainer.innerHTML = '<div class="entry-list-empty">No entries match the search.</div>';
       return;
     }
 
@@ -831,6 +891,7 @@
     html += '<th>Revision</th></tr></thead><tbody>';
 
     entries.forEach((entry, idx) => {
+      if(!entryMatchesSearch(entry)) return;   // No. keeps the original row number
       const changedKeys = (entry.revisedOn === today && Array.isArray(entry.changed)) ? entry.changed : [];
       const rowCls = entry.cancelled ? ' class="cancelled"' : '';
       html += `<tr${rowCls}>`;
@@ -961,6 +1022,10 @@
     const btn = e.target.closest('button[data-action]');
     if(!btn) return;
     const id = Number(btn.dataset.id);
+    if(id < 0){
+      showToast('This row is still being saved. Please try again in a moment.');
+      return;
+    }
 
     if(btn.dataset.action === 'delete'){
       openConfirm('Are you sure to delete?', async () => {
@@ -985,7 +1050,7 @@
 
   // ===== Backend =====
   // Google Apps Script web app (Google Sheet as database). Leave API_URL empty to test locally (browser storage only).
-  const API_URL = 'https://script.google.com/macros/s/AKfycbweCriCMkGJnjqKMR3qA1zo9EPlHZBVH4pwD6Dt2gcBkG3MFXTqeVpW9dAt4vLCBDoKqA/exec';    // e.g. 'https://script.google.com/macros/s/XXXXXXXX/exec'
+  const API_URL = '';    // e.g. 'https://script.google.com/macros/s/XXXXXXXX/exec'
   const API_TOKEN = '';  // optional; must equal TOKEN in Code.gs
 
   let toastTimer = null;
@@ -1052,11 +1117,13 @@
     }
   };
 
-  let busy = false;
+  let pendingSaves = 0;   // background saves in progress
+  let tempIdSeq = 0;      // temporary (negative) ids for rows not yet confirmed by the backend
 
   async function reloadEntries(silent){
     try{
       const list = await store.list();
+      if(pendingSaves > 0) return;   // do not overwrite rows that are still being saved
       entries.length = 0;
       list.forEach(e => entries.push(e));
       if(editingId !== null && !entries.some(e => e.id === editingId)){
@@ -1082,9 +1149,9 @@
 
   // Keep several users in sync: refresh when the tab is shown again and every 60 seconds
   if(API_URL){
-    document.addEventListener('visibilitychange', () => { if(!document.hidden && !busy) reloadEntries(true); });
+    document.addEventListener('visibilitychange', () => { if(!document.hidden && pendingSaves === 0) reloadEntries(true); });
     setInterval(() => {
-      if(document.hidden || busy || !confirmOverlay.hidden) return;
+      if(document.hidden || pendingSaves > 0 || !confirmOverlay.hidden) return;
       reloadEntries(true);
     }, 60000);
   }
@@ -1129,41 +1196,63 @@
     };
 
     const editIdx = editingId !== null ? entries.findIndex(e => e.id === editingId) : -1;
-    const addBtn = document.getElementById('addEntryBtn');
-    addBtn.disabled = true;
-    busy = true;
-    try{
-      if(editIdx >= 0){
-        const old = entries[editIdx];
-        const today = todayStr();
-        // Cells whose value changed; accumulate if the row is revised again on the same day
-        const changed = (old.revisedOn === today && Array.isArray(old.changed)) ? old.changed.slice() : [];
-        columns.forEach(col => {
-          if((old[col.key] || '') !== (data[col.key] || '') && !changed.includes(col.key)){
-            changed.push(col.key);
-          }
-        });
-        const saved = await store.update(Object.assign({
-          id: editingId,
-          revisedOn: today,
-          changed: changed,
-          cancelled: isCancelRemark(data.remark)
-        }, data));
+    const refreshViews = () => { renderEntryList(); refreshSummary(true); };
+    let shown;
+
+    // The row appears in Entry List immediately; saving to the backend continues in the background
+    if(editIdx >= 0){
+      const old = entries[editIdx];
+      const today = todayStr();
+      // Cells whose value changed; accumulate if the row is revised again on the same day
+      const changed = (old.revisedOn === today && Array.isArray(old.changed)) ? old.changed.slice() : [];
+      columns.forEach(col => {
+        if((old[col.key] || '') !== (data[col.key] || '') && !changed.includes(col.key)){
+          changed.push(col.key);
+        }
+      });
+      const updated = Object.assign({
+        id: editingId,
+        revisedOn: today,
+        changed: changed,
+        cancelled: isCancelRemark(data.remark)
+      }, data);
+      entries[editIdx] = updated;
+      shown = updated;
+      pendingSaves++;
+      store.update(updated).then(saved => {
         const i = entries.findIndex(e => e.id === saved.id);
+        if(i >= 0) entries[i] = saved;
+        refreshViews();
+      }).catch(err => {
+        const i = entries.findIndex(e => e.id === updated.id);
+        if(i >= 0) entries[i] = old;
+        refreshViews();
+        showToast('Could not save the revision (rolled back): ' + err.message, true);
+      }).finally(() => { pendingSaves--; });
+    } else {
+      const tempId = --tempIdSeq;
+      const temp = Object.assign({ id: tempId }, data);
+      entries.push(temp);
+      shown = temp;
+      pendingSaves++;
+      store.add(data).then(saved => {
+        const i = entries.findIndex(e => e.id === tempId);
         if(i >= 0) entries[i] = saved; else entries.push(saved);
-      } else {
-        entries.push(await store.add(data));
-      }
-      exitReviseMode();
-      renderEntryList();
-      refreshSummary(true);
-      resetForm();
-    }catch(err){
-      showToast('Could not save: ' + err.message, true);
-    }finally{
-      addBtn.disabled = false;
-      busy = false;
+        refreshViews();
+      }).catch(err => {
+        const i = entries.findIndex(e => e.id === tempId);
+        if(i >= 0) entries.splice(i, 1);
+        refreshViews();
+        // give the typed data back if the form is still empty, so nothing has to be retyped
+        if(editingId === null && !document.getElementById('visitorName').value) loadEntryIntoForm(data);
+        showToast('Could not save to Google Sheet. The row was removed, please add it again: ' + err.message, true);
+      }).finally(() => { pendingSaves--; });
     }
+
+    exitReviseMode();
+    refreshViews();
+    resetForm();
+    if(!entryMatchesSearch(shown)) showToast('Added. This row is hidden by the current search.');
   });
 
   // Export to Excel via the platform's downloads capability
