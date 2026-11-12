@@ -273,7 +273,6 @@
   #entry-list-block{
     display:flex;
     flex-direction:column;
-    max-height:var(--entry-list-max, none);
   }
 
   #entryListContainer{
@@ -990,7 +989,14 @@
     entryListContainer.innerHTML = html;
 
     const newWrap = entryListContainer.querySelector('.entry-table-wrap');
-    if(newWrap) newWrap.scrollTop = prevScroll;
+    if(newWrap){
+      // Show at most 7 data rows (No. 1-7); the rest scrolls inside the table
+      const headH = newWrap.querySelector('thead').getBoundingClientRect().height || 34;
+      const firstRow = newWrap.querySelector('tbody tr');
+      const rowH = (firstRow && firstRow.getBoundingClientRect().height) || 49;
+      newWrap.style.maxHeight = Math.ceil(headH + rowH * 7 + 2) + 'px';
+      newWrap.scrollTop = prevScroll;
+    }
   }
 
   // Revised-row highlight ends at 23:59 of the update day: re-render right after midnight
