@@ -475,6 +475,25 @@
   }
   .search-clear:hover{ background:#F2F3F5; }
 
+  /* Update block (today's changes only) */
+  .update-header{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .update-count{ color:var(--green); font-size:13px; font-weight:700; }
+  .update-date{ font-size:12px; color:var(--text-muted); }
+  .update-list{ max-height:240px; overflow-y:auto; border:1px solid var(--border); border-radius:4px; }
+  .update-item{ display:flex; align-items:flex-start; gap:10px; padding:8px 10px; border-bottom:1px solid var(--border); font-size:12px; line-height:1.5; }
+  .update-item:last-child{ border-bottom:none; }
+  .update-item:hover{ background:#F2F4F6; }
+  .update-tag{ flex:none; min-width:76px; text-align:center; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; color:var(--white); }
+  .update-tag.new{ background:var(--green); }
+  .update-tag.revised{ background:#3B7DDE; }
+  .update-tag.cancelled{ background:#C0392B; }
+  .update-body{ min-width:0; overflow-wrap:anywhere; }
+  .update-body b{ color:var(--navy); }
+  .update-item.cancelled .update-body{ text-decoration:line-through; color:var(--text-muted); }
+  .update-meta{ color:var(--text-muted); }
+  .update-changed{ color:#2E68C4; font-weight:600; }
+  .update-empty{ font-size:12px; color:var(--text-muted); padding:8px 0; }
+
   /* Toast */
   .toast{
     position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%);
@@ -696,6 +715,15 @@
         <div class="entry-list-empty" id="entryListEmpty">No entries yet.</div>
       </div>
     </div>
+
+    <div class="block" id="update-block">
+      <div class="update-header">
+        <div class="block-title">Update</div>
+        <span class="update-count" id="updateCount"></span>
+        <span class="update-date" id="updateDate"></span>
+      </div>
+      <div id="updateContainer"><div class="update-empty">No updates today.</div></div>
+    </div>
   </div>
 
   <!-- Summary tab -->
@@ -871,7 +899,49 @@
     renderEntryList();
   });
 
+  // Update block: only entries added or revised today (list resets automatically after midnight)
+  function renderUpdateBlock(){
+    const today = todayStr();
+    const box = document.getElementById('updateContainer');
+    const items = entries.filter(e => e.createdOn === today || e.revisedOn === today)
+      .sort((a, b) => {
+        const pa = a.id < 0, pb = b.id < 0;          // rows still being saved are the newest
+        if(pa !== pb) return pa ? -1 : 1;
+        return pa ? a.id - b.id : (Number(b.id) || 0) - (Number(a.id) || 0);
+      });
+    document.getElementById('updateDate').textContent = fmtYmdSlash(today);
+    document.getElementById('updateCount').textContent = items.length ? `Total: ${items.length}` : '';
+    if(!items.length){
+      box.innerHTML = '<div class="update-empty">No updates today.</div>';
+      return;
+    }
+    const labelOf = {};
+    columns.forEach(c => { labelOf[c.key] = c.label; });
+    let html = '<div class="update-list">';
+    items.forEach(e => {
+      const isCancel = !!e.cancelled && e.revisedOn === today;
+      const isNew = e.createdOn === today;
+      const type = isCancel ? 'cancelled' : (isNew ? 'new' : 'revised');
+      const tag = isCancel ? 'Cancelled' : (isNew ? 'New' : 'Revised');
+      const range = e.from ? (fmtYmdSlash(e.from) + (e.to && e.to !== e.from ? '~' + fmtYmdSlash(e.to) : '')) : '';
+      const meta = [e.companyBuyer, e.factoryDept, range, e.time, e.usvStaff].filter(Boolean).map(escapeHtml).join(' · ');
+      let changed = '';
+      if(type === 'revised' && e.revisedOn === today && Array.isArray(e.changed) && e.changed.length){
+        changed = `<div class="update-changed">Changed: ${e.changed.map(k => escapeHtml(labelOf[k] || k)).join(', ')}</div>`;
+      }
+      html += `<div class="update-item ${type}"><span class="update-tag ${type}">${tag}</span>` +
+        `<div class="update-body"><b>${escapeHtml(e.visitorName || '')}</b>` +
+        (meta ? ` <span class="update-meta">— ${meta}</span>` : '') + changed + '</div></div>';
+    });
+    box.innerHTML = html + '</div>';
+  }
+
   function renderEntryList(){
+    renderEntryTable();
+    renderUpdateBlock();
+  }
+
+  function renderEntryTable(){
     if(entries.length === 0){
       entryListContainer.innerHTML = '<div class="entry-list-empty" id="entryListEmpty">No entries yet.</div>';
       return;
@@ -1220,6 +1290,7 @@
       });
       const updated = Object.assign({
         id: editingId,
+        createdOn: old.createdOn || '',
         revisedOn: today,
         changed: changed,
         cancelled: isCancelRemark(data.remark)
@@ -1239,11 +1310,12 @@
       }).finally(() => { pendingSaves--; });
     } else {
       const tempId = --tempIdSeq;
-      const temp = Object.assign({ id: tempId }, data);
+      const newData = Object.assign({ createdOn: todayStr() }, data);
+      const temp = Object.assign({ id: tempId }, newData);
       entries.push(temp);
       shown = temp;
       pendingSaves++;
-      store.add(data).then(saved => {
+      store.add(newData).then(saved => {
         const i = entries.findIndex(e => e.id === tempId);
         if(i >= 0) entries[i] = saved; else entries.push(saved);
         refreshViews();
